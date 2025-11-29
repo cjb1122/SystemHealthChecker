@@ -1,0 +1,36 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Editor settings
+*.swp
+*.swo
+*.idea/
+*.vscode/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Python packaging
+build/
+dist/
+*.egg-info/
+
+# Config backups
+*.bak
+*.old
+
+# Credentials (example)
+config.json.bak
+*.secret
