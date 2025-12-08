@@ -1,90 +1,81 @@
 #!/usr/bin/env python3
-
-from flask import Flask, request, jsonify
-from functools import wraps
 import os
-import json
 from datetime import datetime
+from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
-# ====================================================
-# Configuration
-# ====================================================
-AGGREGATOR_USER = os.getenv("AGG_USER", "admin")
-AGGREGATOR_PASS = os.getenv("AGG_PASS", "SuperSecurePassword123")
+# -----------------------------
+# Authentication Config
+# -----------------------------
+USERNAME = "admin"
+PASSWORD = "SuperSecurePassword123"
 
-DATA_FOLDER = "data"
-os.makedirs(DATA_FOLDER, exist_ok=True)
+# -----------------------------
+# In-Memory Metrics Store
+# -----------------------------
+metrics_store = {}   # { hostname: { last_update: <iso>, metrics: { ... } } }
 
-# ====================================================
-# Authentication
-# ====================================================
-def check_auth(username, password):
-    return username == AGGREGATOR_USER and password == AGGREGATOR_PASS
 
-def require_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        auth = request.authorization
-        if not auth or not check_auth(auth.username, auth.password):
-            return jsonify({"error": "Unauthorized"}), 401
-        return f(*args, **kwargs)
-    return wrapper
-
-# ====================================================
-# Basic Health Check
-# ====================================================
+# -----------------------------
+# Health Check
+# -----------------------------
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "timestamp": datetime.utcnow().isoformat()})
 
-# ====================================================
-# Receive Metrics from Agents
-# ====================================================
+
+# -----------------------------
+# Receive Metrics From Agents
+# POST /metrics   (agent → server)
+# -----------------------------
 @app.route("/metrics", methods=["POST"])
-@require_auth
 def receive_metrics():
-    data = request.json
+    auth = request.authorization
+
+    if not auth or auth.username != USERNAME or auth.password != PASSWORD:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.get_json()
 
     if not data:
-        return jsonify({"error": "No JSON payload"}), 400
+        return jsonify({"error": "Missing JSON"}), 400
 
-    hostname = data.get("hostname", "unknown")
-    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    hostname = data.get("hostname")
+    if not hostname:
+        return jsonify({"error": "Missing hostname"}), 400
 
-    filename = f"{hostname}_{timestamp}.json"
-    filepath = os.path.join(DATA_FOLDER, filename)
+    metrics_store[hostname] = {
+        "last_update": datetime.utcnow().isoformat() + "Z",
+        "metrics": data
+    }
 
-    try:
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
+    return jsonify({"status": "received"}), 200
 
-        return jsonify({"status": "saved", "file": filename}), 200
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+# -----------------------------
+# Fetch All Metrics For Dashboard
+# GET /dashboard-data   (browser → server)
+# -----------------------------
+@app.route("/dashboard-data", methods=["GET"])
+def dashboard_data():
+    return jsonify(metrics_store)
 
-# ====================================================
-# Return All Saved Metrics
-# ====================================================
-@app.route("/metrics", methods=["GET"])
-@require_auth
-def list_metrics():
-    files = sorted(os.listdir(DATA_FOLDER))
-    entries = []
 
-    for file in files:
-        try:
-            with open(os.path.join(DATA_FOLDER, file)) as f:
-                entries.append(json.load(f))
-        except:
-            pass
-    
-    return jsonify(entries), 200
+# -----------------------------
+# Dashboard Page (HTML)
+# GET /
+# -----------------------------
+@app.route("/", methods=["GET"])
+def dashboard():
+    return render_template("dashboard.html")
 
-# ====================================================
-# Run Server
-# ====================================================
+
+# -----------------------------
+# Run Flask (0.0.0.0 for public)
+# -----------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
