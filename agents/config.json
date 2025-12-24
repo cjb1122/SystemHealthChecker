@@ -1,6 +1,6 @@
 {
-  "aggregator_url": "http://3.12.150.216:5000/submit",
+  "aggregator_url": "http://3.12.210.216:5000/metrics",
   "username": "admin",
   "password": "SuperSecurePassword123",
-  "interval_seconds": 60
+  "interval_seconds": 10
 }
