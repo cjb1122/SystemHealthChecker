@@ -11,7 +11,7 @@ import json
 # -------------------------------
 # CONFIG — EDIT ONLY THESE VALUES
 # -------------------------------
-AGGREGATOR_URL = "http://3.129.210.216:5000/metrics"
+AGGREGATOR_URL = "http://18.189.194.40:5000/metrics"
 AGG_USER = "admin"
 AGG_PASS = "SuperSecurePassword123"
 INTERVAL_SECONDS = 60
