@@ -4,7 +4,9 @@ import time
 import socket
 import psutil
 import requests
-from datetime import datetime, timezone
+import platform
+import json
+"timestamp": datetime.now(timezone.utc).isoformat()
 
 # -------------------------------
 # CONFIG — EDIT ONLY THESE VALUES

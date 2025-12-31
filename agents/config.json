@@ -1,5 +1,5 @@
 {
-  "aggregator_url": "http://3.12.210.216:5000/metrics",
+  "aggregator_url": "http://18.189.194.40:5000/metrics",
   "username": "admin",
   "password": "SuperSecurePassword123",
   "interval_seconds": 10
