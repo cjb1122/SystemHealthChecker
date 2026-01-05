@@ -13,6 +13,19 @@ Threshold-Based Alerting: The UI uses conditional logic to trigger visual alerts
 
 Decoupled Architecture: A Python agent (Producer) ships JSON telemetry to a Flask REST API (Aggregator), which serves a reactive JavaScript frontend (Consumer).
 
+Final Project Structure
+SystemHealthcheck/
+├── aggregator/
+│   ├── app.py              # The Flask Hub
+│   ├── requirements.txt    # flask, flask-cors
+│   └── templates/
+│       └── dashboard.html  # The UI
+├── agent/
+│   ├── agent.py            # The Collector
+│   └── healthcheck-agent.service
+├── LICENSE                 # MIT License
+└── README.md               # The documentation
+
 
 🏗️ Technical Stack
 Backend: Python 3.10+, Flask, Flask-CORS
